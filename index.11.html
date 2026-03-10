@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency QR Code Generator</title>
+    <!-- load QRCode library; using qrcodejs distribution which is available on cdnjs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .form-section h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 30px;
+            font-size: 1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-clear {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        .qr-section {
+            text-align: center;
+        }
+
+        .qr-section h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+
+        #qrcode {
+            display: inline-block;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+            border: 2px dashed #e0e0e0;
+        }
+
+        .qr-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn-download,
+        .btn-print {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-print {
+            background: #007bff;
+        }
+
+        .btn-download:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-print:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .qr-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            border-radius: 6px;
+            text-align: left;
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        .qr-info strong {
+            color: #667eea;
+        }
+
+        .empty-state {
+            color: #999;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .empty-state p {
+            font-size: 1.1em;
+        }
+
+        .info-banner {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            color: #856404;
+        }
+
+        .info-banner strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Emergency QR Code Generator</h1>
+            <p>Create a QR code with your emergency contact details</p>
+        </div>
+
+        <div class="content">
+            <!-- Form Section -->
+            <div class="form-section">
+                <h2>Your Details</h2>
+                <div class="info-banner">
+                    <strong>Important:</strong> This QR code will contain your personal information. Store it securely and share wisely.
+                </div>
+
+                <form id="detailsForm">
+                    <div class="form-group">
+                        <label for="fullName">Full Name *</label>
+                        <input type="text" id="fullName" placeholder="Enter your full name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bloodGroup">Blood Group *</label>
+                        <input type="text" id="bloodGroup" placeholder="e.g., O+, AB-" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="personalMobile">Personal Mobile *</label>
+                            <input type="tel" id="personalMobile" placeholder="Your mobile number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="familyPhone">Family Phone *</label>
+                            <input type="tel" id="familyPhone" placeholder="Family contact number" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" placeholder="Your email address">
+                        </div>
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" placeholder="Your age" min="0" max="150">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="medicalConditions">Medical Conditions / Allergies</label>
+                        <textarea id="medicalConditions" placeholder="e.g., Diabetic, Allergic to Penicillin, Heart condition"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="emergencyContact">Emergency Contact Name</label>
+                        <input type="text" id="emergencyContact" placeholder="Name of emergency contact">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="medicines">Current Medicines</label>
+                        <textarea id="medicines" placeholder="List of medicines you're currently taking"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ambulanceNo">Ambulance Number</label>
+                            <input type="tel" id="ambulanceNo" placeholder="e.g., 102 or local ambulance no.">
+                        </div>
+                        <div class="form-group">
+                            <label for="policeNo">Police Number</label>
+                            <input type="tel" id="policeNo" placeholder="e.g., 100 or local police no.">
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-generate">Generate QR Code</button>
+                        <button type="reset" class="btn-clear">Clear Form</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="qr-section">
+                <h2>Your QR Code</h2>
+                <div id="qrCodeContainer" class="empty-state">
+                    <p>Fill the form and click "Generate QR Code" to see your emergency QR code here</p>
+                </div>
+                <div id="qrActionsContainer" class="qr-actions" style="display: none;">
+                    <button class="btn-download" onclick="downloadQR()">📥 Download</button>
+                    <button class="btn-print" onclick="printQR()">🖨️ Print</button>
+                </div>
+                <div id="qrInfo" class="qr-info" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let qrCodeInstance = null;
+
+        document.getElementById('detailsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generateQRCode();
+        });
+
+        function generateQRCode() {
+            if (typeof QRCode === 'undefined') {
+                alert('QR Code library failed to load. Please check your internet connection.');
+                return;
+            }
+
+            const fullName = document.getElementById('fullName').value.trim();
+            const bloodGroup = document.getElementById('bloodGroup').value.trim();
+            const personalMobile = document.getElementById('personalMobile').value.trim();
+            const familyPhone = document.getElementById('familyPhone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const age = document.getElementById('age').value.trim();
+            const medicalConditions = document.getElementById('medicalConditions').value.trim();
+            const emergencyContact = document.getElementById('emergencyContact').value.trim();
+            const medicines = document.getElementById('medicines').value.trim();
+            const ambulanceNo = document.getElementById('ambulanceNo').value.trim();
+            const policeNo = document.getElementById('policeNo').value.trim();
+
+            // Build the QR code data
+            let qrData = `EMERGENCY DETAILS\nName: ${fullName}\nBlood Group: ${bloodGroup}\nPersonal Mobile: ${personalMobile}\nFamily Phone: ${familyPhone}`;
+
+            if (email) qrData += `\nEmail: ${email}`;
+            if (age) qrData += `\nAge: ${age}`;
+            if (medicalConditions) qrData += `\nMedical Conditions: ${medicalConditions}`;
+            if (emergencyContact) qrData += `\nEmergency Contact: ${emergencyContact}`;
+            if (medicines) qrData += `\nMedicines: ${medicines}`;
+            if (ambulanceNo) qrData += `\nAmbulance: ${ambulanceNo}`;
+            if (policeNo) qrData += `\nPolice: ${policeNo}`;
+
+            // Clear previous QR code
+            const container = document.getElementById('qrcode');
+            if (container) container.remove();
+
+            // Create new QR code container
+            const qrContainer = document.createElement('div');
+            qrContainer.id = 'qrcode';
+            qrContainer.style.display = 'inline-block';
+            qrContainer.style.padding = '20px';
+            qrContainer.style.background = '#f9f9f9';
+            qrContainer.style.borderRadius = '12px';
+            qrContainer.style.border = '2px dashed #e0e0e0';
+            qrContainer.style.marginTop = '20px';
+            
+            const qrCodeContainer = document.getElementById('qrCodeContainer');
+            qrCodeContainer.innerHTML = '';
+            qrCodeContainer.appendChild(qrContainer);
+
+            try {
+                // Generate QR code
+                qrCodeInstance = new QRCode(qrContainer, {
+                    text: qrData,
+                    width: 256,
+                    height: 256,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                // Show action buttons
+                document.getElementById('qrActionsContainer').style.display = 'flex';
+
+                // Show QR info
+                const qrInfo = document.getElementById('qrInfo');
+                qrInfo.innerHTML = `
+                    <strong>📋 Encoded Information:</strong><br>
+                    ${ambulanceNo ? `<span style="color: #d32f2f; font-weight: bold;">🚑 Ambulance: ${ambulanceNo}</span><br>` : ''}
+                    ${policeNo ? `<span style="color: #1976d2; font-weight: bold;">🚔 Police: ${policeNo}</span><br>` : ''}
+                    <hr style="margin: 10px 0; border: none; border-top: 1px solid #ddd;">
+                    Name: ${fullName}<br>
+                    Blood Group: ${bloodGroup}<br>
+                    Mobile: ${personalMobile}<br>
+                    Family: ${familyPhone}
+                    ${medicalConditions ? `<br>Medical Info: ${medicalConditions}` : ''}
+                `;
+                qrInfo.style.display = 'block';
+            } catch (error) {
+                alert('Error generating QR code. Please check your details and try again.');
+                console.error('QR Code Error:', error);
+            }
+        }
+
+        function downloadQR() {
+            if (!qrCodeInstance) return;
+
+            const canvas = document.querySelector('#qrcode canvas');
+            if (!canvas) return;
+
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `Emergency_QR_${new Date().getTime()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function printQR() {
+            if (!qrCodeInstance) return;
+
+            const canvas = document.querySelector('#qrcode canvas');
+            if (!canvas) return;
+
+            const printWindow = window.open('', '', 'width=600,height=700');
+            const fullName = document.getElementById('fullName').value;
+
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Emergency QR Code - ${fullName}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+                        h2 { color: #667eea; margin-bottom: 20px; }
+                        img { max-width: 400px; margin: 20px 0; border: 2px solid #667eea; padding: 10px; }
+                        .info { text-align: left; margin-top: 30px; padding: 20px; border: 1px solid #ddd; }
+                    </style>
+                </head>
+                <body>
+                    <h2>🚨 Emergency Information QR Code</h2>
+                    <p>Name: ${fullName}</p>
+                    <img src="${canvas.toDataURL('image/png')}" alt="QR Code">
+                    <p style="font-size: 0.9em; color: #666; margin-top: 20px;">
+                        Scan this QR code to view emergency contact details
+                    </p>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
+        }
+    </script>
+</body>
+</html>
+
